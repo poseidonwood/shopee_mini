@@ -148,7 +148,7 @@ function validasicheckout() {
       var json = data,
         obj = JSON.parse(json);
         console.log(obj);
-        window.location.href= base_url + '/proses/pembayaran/' + obj.id_transaksi;
+        // window.location.href= base_url + '/proses/pembayaran/' + obj.id_transaksi;
       // console(obj.notif);
     });
   }

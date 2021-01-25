@@ -8,6 +8,7 @@ class Proses extends CI_Controller
     parent::__construct();
     $this->load->model('Model_db');
     $this->load->model('Model_notif');
+    include APPPATH . 'third_party/Whatsapp.php';
   }
   public function upload_product()
   {
@@ -296,6 +297,8 @@ class Proses extends CI_Controller
     $this->Model_db->create('to_transaksi', $data);
     // update cart mark up dengan id transaksi
     $this->Model_db->updatetrxincart('to_cart', array('id_trx' => $id_transaksi), $this->input->ip_address(), 'UNPAID');
+    // $this->Whatsapp_class->sendwa('6282335494254', json_encode($data));
+
     echo json_encode($data);
   }
   public function pembayaran($id_transaksi = null)
