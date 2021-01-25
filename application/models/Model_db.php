@@ -82,6 +82,16 @@ class Model_db extends CI_Model
     return true; // gives UPDATE `mytable` SET `field` = 'field+1' WHERE `id` = 2 
   }
 
+  public function updatetrxincart($table, $value, $id, $status)
+  {
+
+    $this->db->set($value);
+    $this->db->where('id_user', $id);
+    $this->db->where('status', $status);
+    $this->db->update($table);
+    return true; // gives UPDATE `mytable` SET `field` = 'field+1' WHERE `id` = 2 
+  }
+
   // crud
 
 
@@ -186,8 +196,35 @@ class Model_db extends CI_Model
       return null;
     }
   }
-
   // End User
+
+  // Transaksi
+  public function getIdTransaksi($table)
+  {
+
+    $this->db->select_max('id_transaksi');
+    $this->db->from($table);
+    $query = $this->db->get();
+    if ($query->num_rows() > 0) {
+      return $query->row();
+    } else {
+      return false;
+    }
+  }
+  public function gettransaksi($table, $field, $value)
+  {
+
+    $this->db->select('*');
+    $this->db->where($field, $value);
+    $this->db->from($table);
+    $query = $this->db->get();
+    if ($query->num_rows() > 0) {
+      return $query->row();
+    } else {
+      return false;
+    }
+  }
+  // 
 }
 
 /* End of file Model_db.php */

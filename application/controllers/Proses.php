@@ -248,9 +248,78 @@ class Proses extends CI_Controller
   // Create Transaksi 
   public function transaksi()
   {
+    //ID TRANSAKSI //
+    $cek_id = $this->Model_db->getIdTransaksi('to_transaksi');
+    if ($cek_id == true) {
+      $gId_transaksi = $cek_id->id_transaksi;
+      $strId_transaksi = (int)(str_replace('TRX', '', $gId_transaksi));
+      $id_transaksi = "TRX" . ($strId_transaksi + 1);
+    } else {
+      $id_transaksi = 'TRX1';
+    }
+    // DATA PEMBELI
+    $cek_pembeli = $this->Model_db->get_user('to_user', $this->input->ip_address());
+    $nm_pembeli = $cek_pembeli->nama;
+    $hp = $cek_pembeli->phone;
+    $alamat = $cek_pembeli->alamat;
     $jasa = $this->input->post('jasa');
     $ongkirnya = $this->input->post('ongkirnya');
-    $data = array('jasa' => $jasa, 'ongkirnya' => $ongkirnya);
+    $harga_total = $this->input->post('total_semua');
+    $status_pembayaran = "0";
+    $status_transaksi = "LAKUKAN PEMBAYARAN";
+    $tempo_bayar = date('Y-m-d H:i:s', strtotime('+3 days'));;
+    $device_ip = $this->input->ip_address();
+    if ($jasa == "COD") {
+      $jenis_pembayaran = "COD";
+    } else {
+      $jenis_pembayaran = "BCA";
+    }
+
+
+    // timestamps	id_transaksi	tanggal	nm_pembeli	hp	alamat	metode_kirim	harga_ongkir	harga_total	jenis_pembayaran	status_pembayaran	status_transaksi	tempo_bayar	device_ip
+    $data = array(
+      'timestamps' => date("Y-m-d H:i:s"),
+      'id_transaksi' => $id_transaksi,
+      'tanggal' => date("Y-m-d"),
+      'nm_pembeli' => $nm_pembeli,
+      'hp' => $hp,
+      'alamat' => $alamat,
+      'metode_kirim' => $jasa,
+      'harga_ongkir' => $ongkirnya,
+      'harga_total' => $harga_total,
+      'jenis_pembayaran' => $jenis_pembayaran,
+      'status_pembayaran' => $status_pembayaran,
+      'status_transaksi' => $status_transaksi,
+      'tempo_bayar' => $tempo_bayar,
+      'device_ip' => $device_ip
+    );
+    $this->Model_db->create('to_transaksi', $data);
+    // update cart mark up dengan id transaksi
+    $this->Model_db->updatetrxincart('to_cart', array('id_trx' => $id_transaksi), $this->input->ip_address(), 'UNPAID');
     echo json_encode($data);
+  }
+  public function pembayaran($id_transaksi = null)
+  {
+    $cekatm = $this->Model_db->gettransaksi('to_atm', 'status', 'Y');
+    //cek apakah pembayaran COD / NONCOD
+    $cek = $this->Model_db->gettransaksi('to_transaksi', 'id_transaksi', $id_transaksi);
+    if ($cek->jenis_pembayaran == "COD") {
+      echo "alihkan ke pembayaran COD";
+    } else {
+      $data = array(
+        "product" => $this->Model_db->get_product('to_product', '10'),
+        "title" => "TokTek | Toko Teknik Online",
+        "count_cart" => $this->Model_db->count_cart('to_cart', $this->input->ip_address(), 'UNPAID'),
+        "back_button" => base_url('product/cart'),
+        "header" => "Payment Transaction",
+        'namabank' => $cekatm->namabank,
+        'pemilik' => $cekatm->pemilik,
+        'no' => $cekatm->no,
+        'total' => $cek->harga_total
+
+      );
+      $this->load->view('home/payment-noncod', $data);
+      // echo "alihkan ke pembayaran BCA";
+    }
   }
 }

@@ -130,7 +130,7 @@ function getongkir(service,ongkir){
 function validasicheckout() {
   var jasa = $('#jasa').val();
   var ongkirnya = $('#ongkirnya').val();
-
+  var total_semua = $('#totalsemua').val();
   if (jasa === ""){
     Swal.fire({
       icon: 'error',
@@ -139,15 +139,16 @@ function validasicheckout() {
     })
 
   }else{
-    console.log('ok data semua benar');
+    // console.log('ok data semua benar');
     $.ajax({
       type: 'POST',
       url: base_url+'/proses/transaksi',
-      data: {jasa:jasa,ongkirnya:ongkirnya},
+      data: {jasa:jasa,ongkirnya:ongkirnya,total_semua:total_semua},
     }).done(function(data) {
       var json = data,
         obj = JSON.parse(json);
-        alert(obj.ongkirnya);
+        console.log(obj);
+        window.location.href= base_url + '/proses/pembayaran/' + obj.id_transaksi;
       // console(obj.notif);
     });
   }
