@@ -8,7 +8,6 @@ class Proses extends CI_Controller
     parent::__construct();
     $this->load->model('Model_db');
     $this->load->model('Model_notif');
-    include APPPATH . 'third_party/Whatsapp.php';
   }
   public function upload_product()
   {
@@ -297,32 +296,43 @@ class Proses extends CI_Controller
     $this->Model_db->create('to_transaksi', $data);
     // update cart mark up dengan id transaksi
     $this->Model_db->updatetrxincart('to_cart', array('id_trx' => $id_transaksi), $this->input->ip_address(), 'UNPAID');
-    // $this->Whatsapp_class->sendwa('6282335494254', json_encode($data));
-
+    //  Wa start
+    // require_once(APPPATH . 'controllers/Thirdapp.php');
+    // $waclass =  new Thirdapp();
+    // $waclass->sendwa('6282335494254', 'test');
+    // Wa end
     echo json_encode($data);
   }
   public function pembayaran($id_transaksi = null)
   {
-    $cekatm = $this->Model_db->gettransaksi('to_atm', 'status', 'Y');
-    //cek apakah pembayaran COD / NONCOD
-    $cek = $this->Model_db->gettransaksi('to_transaksi', 'id_transaksi', $id_transaksi);
-    if ($cek->jenis_pembayaran == "COD") {
-      echo "alihkan ke pembayaran COD";
+    if ($id_transaksi == null) {
+      redirect('home/', 'refresh');
     } else {
-      $data = array(
-        "product" => $this->Model_db->get_product('to_product', '10'),
-        "title" => "TokTek | Toko Teknik Online",
-        "count_cart" => $this->Model_db->count_cart('to_cart', $this->input->ip_address(), 'UNPAID'),
-        "back_button" => base_url('product/cart'),
-        "header" => "Payment Transaction",
-        'namabank' => $cekatm->namabank,
-        'pemilik' => $cekatm->pemilik,
-        'no' => $cekatm->no,
-        'total' => $cek->harga_total
+      //cek apakah pembayaran COD / NONCOD
+      $cek = $this->Model_db->gettransaksi('to_transaksi', 'id_transaksi', $id_transaksi);
+      if ($cek == true) {
+        if ($cek->jenis_pembayaran == "COD") {
+          echo "alihkan ke pembayaran COD";
+        } else {
+          $cekatm = $this->Model_db->gettransaksi('to_atm', 'status', 'Y');
+          $data = array(
+            "product" => $this->Model_db->get_product('to_product', '10'),
+            "title" => "TokTek | Toko Teknik Online",
+            "count_cart" => $this->Model_db->count_cart('to_cart', $this->input->ip_address(), 'UNPAID'),
+            "back_button" => base_url('product/cart'),
+            "header" => "Payment Transaction",
+            'namabank' => $cekatm->namabank,
+            'pemilik' => $cekatm->pemilik,
+            'no' => $cekatm->no,
+            'total' => $cek->harga_total
 
-      );
-      $this->load->view('home/payment-noncod', $data);
-      // echo "alihkan ke pembayaran BCA";
+          );
+          $this->load->view('home/payment-noncod', $data);
+          // echo "alihkan ke pembayaran BCA";
+        }
+      } else {
+        redirect('home/', 'refresh');
+      }
     }
   }
 }
